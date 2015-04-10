@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# watch events until infinity
+UNTIL=99999999999
+
+# include last 5mins in watch
+SINCE=$(expr `date +%s` - 60 \* 5)
+
+DOMAIN=fubar
+PDNS=powerdns
+
+
+docker events --since=$SINCE --until=$UNTIL \
+| while read -r LINE
+do
+  if [[ ! $LINE =~ ^(.+)\ (.+):\ \(from\ (.+)\)\ (.+)$ ]] ; then
+    echo no match: $LINE 
+    continue;
+  fi
+
+  DATE="${BASH_REMATCH[1]}"
+  CID="${BASH_REMATCH[2]}"
+  EVENT="${BASH_REMATCH[4]}"
+
+
+  # Container started
+  if [ "$EVENT" = "start" ] ; then
+    # be failor tolereant cause of --since
+    NAME=`docker inspect --format '{{ .Name }}' $CID 2>/dev/null` || continue;
+    NAME=${NAME:1}
+    IP=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' $CID`
+
+    # skip container without name or ip
+    if [ "$NAME" = "" ] || [ "$IP" = "" ] ; then
+      continue;
+    fi
+
+    docker exec $PDNS manage addrecord $DOMAIN $NAME A $IP 60 $CID
+  fi
+
+
+  # Container stopped
+  if [ "$EVENT" = "die" ] ; then
+    docker exec $PDNS manage delrecord $CID
+  fi
+
+done

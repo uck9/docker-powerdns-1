@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Usage: manage listoptions
+# Summary: List PowerDNS options
+# Help: This command is used to list PowerDNS options
+set -e
+[[ -z $_MANAGE_ROOT ]] && exit 1
+
+/usr/sbin/pdns_server --help

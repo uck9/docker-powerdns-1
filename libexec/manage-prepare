@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Usage: manage pid
+# Help: Prepare the environment
+set -e
+[[ -z $_MANAGE_ROOT ]] && exit 1
+
+if [ ! "$MYSQL_HOST" = "" ] && [ ! -f /root/.my.cnf ] ; then
+  echo "[client]" > /root/.my.cnf
+  echo "host=$MYSQL_HOST" >> /root/.my.cnf
+  echo "port=$MYSQL_PORT" >> /root/.my.cnf
+  echo "user=$MYSQL_USER" >> /root/.my.cnf
+  echo "password=$MYSQL_PWD" >> /root/.my.cnf
+fi

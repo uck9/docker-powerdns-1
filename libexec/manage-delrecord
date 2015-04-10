@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Usage: manage addrecord IDENT
+# Help: Add a record
+set -e
+[[ -z $_MANAGE_ROOT ]] && exit 1
+
+manage-prepare || exit $?
+
+if [ "$MYSQL_DB" = "" ] ; then
+  echo ERROR: addrecord currently suppots only MySQL backend
+  echo but MYSQL_DB env var is empty
+  exit 1
+fi
+
+if [ "$1" =  "" ] ; then
+  echo Usage: $0 delrecord IDENT
+  exit 1
+fi
+
+mysql -B $MYSQL_DB -e "DELETE FROM records WHERE ident='$1'" || exit $?
+
+echo Record deleted

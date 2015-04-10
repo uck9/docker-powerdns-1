@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Usage: manage start
+# Summary: Start the main process
+# Help: This command is used to start the main process.
+set -e
+[[ -z $_MANAGE_ROOT ]] && exit 1
+
+
+if manage-running
+then
+  echo "PowerDNS is already running"
+else
+  manage-prepare || exit $?
+
+  if [ ! "$MYSQL_HOST" = "" ] ; then
+    OPTS="$OPTS --launch=gmysql"
+    OPTS="$OPTS --gmysql-host=$MYSQL_HOST"
+    OPTS="$OPTS --gmysql-port=$MYSQL_PORT"
+    OPTS="$OPTS --gmysql-dbname=$MYSQL_DB"
+    OPTS="$OPTS --gmysql-user=$MYSQL_USER"
+    OPTS="$OPTS --gmysql-password=$MYSQL_PWD"
+  fi
+
+  echo "Starting PowerDNS"
+  trap "manage-stop" SIGTERM
+  /usr/sbin/pdns_server \
+    --daemon=no \
+    --module-dir=/usr/lib/pdns/pdns \
+    --no-config \
+    --setgid=pdns \
+    --setuid=pdns \
+    $OPTS
+fi
